@@ -43,53 +43,58 @@ public class VendaController {
 
 
     @GetMapping("produto/add/{id}")
-    public ModelAndView produtoAdd(@PathVariable("id") Long produtoId){
+    public ModelAndView produtoAdd(@PathVariable("id") Long produtoId) {
+        Produto produto = produtoRepository.produto(produtoId);
 
-        if (venda.getItemVendas().isEmpty()) {
-            Produto produto = produtoRepository.produto(produtoId);
-            ItemVenda itemNovo = new ItemVenda();
-            itemNovo.setProduto(produto);
-            itemNovo.setQuantidade(1);
+        //Verifica se o produto retornado do repositório não é nulo antes de continuar.
+        if (produto != null) {
+            ItemVenda itemExistente = null;
 
-            itemNovo.setVenda(venda);
-            venda.getItemVendas().add(itemNovo);
-        } else {
-            int cont = 0;
+            //apenas percorre a lista de itens de venda para encontrar o item existente.
             for (ItemVenda itemVenda : venda.getItemVendas()) {
-                cont++;
                 if (itemVenda.getProduto().getId().equals(produtoId)) {
-                    itemVenda.setQuantidade(itemVenda.getQuantidade() + 1);
-                    break;
-                } else if(venda.getItemVendas().size() == cont) { // Se chegar na ultima posição da lista, então ainda não existe
-                    Produto produto = produtoRepository.produto(produtoId);
-                    ItemVenda itemNovo = new ItemVenda();
-                    itemNovo.setProduto(produto);
-                    itemNovo.setQuantidade(1);
-
-                    itemNovo.setVenda(venda);
-                    venda.getItemVendas().add(itemNovo);
+                    itemExistente = itemVenda;
                     break;
                 }
+            }
+
+            //Usa uma variável itemExistente para armazenar o item encontrado e atualiza
+            //sua quantidade, ou adiciona um novo item de venda se não for encontrado.
+            if (itemExistente != null) {
+                itemExistente.setQuantidade(itemExistente.getQuantidade() + 1);
+            } else {
+                ItemVenda itemNovo = new ItemVenda();
+                itemNovo.setProduto(produto);
+                itemNovo.setQuantidade(1);
+                itemNovo.setVenda(venda);
+                venda.getItemVendas().add(itemNovo);
             }
         }
 
         return new ModelAndView("redirect:/produtos/area-compra");
     }
 
-    @PostMapping ("/save")
-    public ModelAndView save(@Valid @RequestParam("pessoaId") Long id , HttpSession session, BindingResult result){
+@PostMapping("/save")
+public ModelAndView save(@Valid @ModelAttribute("venda") Venda venda,
+                         BindingResult result,
+                         @RequestParam("pessoaId") Long id,
+                         HttpSession session) {
 
-        if(venda.getItemVendas().isEmpty() || result.hasErrors()) {
-            return new ModelAndView("redirect:/produtos/area-compra");
-        }
 
-        Pessoa pessoa = buscarPessoa(id);
-        venda.setPessoa(pessoa);
-        venda.setDataHora(LocalDate.now());
-        vendaRepository.save(venda);
-        session.invalidate();
-        return new ModelAndView("redirect:/vendas/list");
+    // Verifique se o carrinho está vazio
+    if (venda.getItemVendas().isEmpty()) {
+        return new ModelAndView("redirect:/produtos/area-compra");
     }
+
+    // Processamento normal
+    Pessoa pessoa = buscarPessoa(id);
+    venda.setPessoa(pessoa);
+    venda.setDataHora(LocalDate.now());
+    vendaRepository.save(venda);
+    session.invalidate();
+
+    return new ModelAndView("redirect:/vendas/list");
+}
 
 
     // - VENDAS/CARRINHO

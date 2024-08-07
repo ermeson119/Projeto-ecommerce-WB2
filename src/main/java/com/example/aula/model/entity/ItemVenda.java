@@ -2,6 +2,7 @@ package com.example.aula.model.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -13,8 +14,8 @@ public class ItemVenda implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Min(0)
+    @NotNull
+    @Min(1)
     private Integer quantidade;
     @ManyToOne
     private Venda venda;

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import java.util.Objects;
     @Id
     private Long id;
     @NotBlank
+    @Size(min = 2, max = 150)
     private String descricao;
     @NotNull
     @Min(1)
